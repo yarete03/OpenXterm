@@ -46,9 +46,11 @@ def args_parser():
                                help='Name of the session to establish connection')
 
     # Subparser for the 'connect' action
-    list_parser = subparsers.add_parser('connect', help='Connect to an object')
+    list_parser = subparsers.add_parser('list', help='List sessions | directories')
     list_parser.add_argument('object_name', 
-                               help='Name of the session to establish connection')
+                               help='Name of the directory to list',
+                               nargs='?',
+                               default=None)
 
     # Parse arguments
     args = parser.parse_args()
@@ -156,6 +158,10 @@ def connect_to_object(mxtsessions_file_path, session_name):
         print("The session you tried to connect to was not found")
         exit(1)
 
+def list_objects(mxtsessions_file_path, object_name):
+    pass
+
+
 
 def main():
     global args 
@@ -169,6 +175,8 @@ def main():
         search_objects(mxtsessions_file_path, args.object_type, args.object_name)
     elif args.action == 'connect':
         connect_to_object(mxtsessions_file_path, args.object_name)
+    elif args.action == 'list':
+        list_objects(mxtsessions_file_path, args.object_name)
 
 
 if __name__ == "__main__":
