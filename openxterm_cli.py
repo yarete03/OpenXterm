@@ -19,21 +19,21 @@ def args_parser():
     # Subparser for the 'import' action
     create_parser = subparsers.add_parser('import', help='Import a new object')
     create_parser.add_argument('object_type', 
-                               choices=['session'],  # Defining allowed choices for object_type
+                               choices=['session_stack'],  # Defining allowed choices for object_type
                                help='Type of the object to import')
     create_parser.add_argument('object_name', help='Path to the file containing shared sessions')
 
     # Subparser for the 'delete' action
     delete_parser = subparsers.add_parser('delete', help='Delete an object')
     delete_parser.add_argument('object_type', 
-                               choices=['session'],  # Defining allowed choices for object_type
+                               choices=['session_stack'],  # Defining allowed choices for object_type
                                help='Type of the object to delete')
     delete_parser.add_argument('object_name', 
                                help='Name of the object to delete')
 
     # Subparser for the 'search' action
     search_parser = subparsers.add_parser('search', help='Search an object')
-    search_parser.add_argument('object_type', 
+    search_parser.add_argument('-t', '--object_type', 
                                choices=['session', 'directory', 'any'],  # Defining allowed choices for object_type
                                default='any',
                                help='Type of the object to search. Default: any')
@@ -45,6 +45,10 @@ def args_parser():
     connect_parser.add_argument('object_name', 
                                help='Name of the session to establish connection')
 
+    # Subparser for the 'connect' action
+    list_parser = subparsers.add_parser('connect', help='Connect to an object')
+    list_parser.add_argument('object_name', 
+                               help='Name of the session to establish connection')
 
     # Parse arguments
     args = parser.parse_args()
@@ -59,7 +63,7 @@ def ensure_mxtsessions_path():
 
 
 def import_object(mxtsessions_file_path, object_type, object_name):
-    if object_type == 'session':
+    if object_type == 'session_stack':
         session_path = object_name
         with open(mxtsessions_file_path, 'r+') as file:
             content = file.read()
@@ -68,7 +72,7 @@ def import_object(mxtsessions_file_path, object_type, object_name):
 
 
 def delete_object(mxtsessions_file_path, object_type, object_name):
-    if object_type == "session":
+    if object_type == "session_stack":
         with open(mxtsessions_file_path, 'r+') as file:
             content = file.read()
             if object_name + '\n' in content:
@@ -120,6 +124,7 @@ def connect_to_object(mxtsessions_file_path, session_name):
                 if session_name_directory in line:
                     session_name_directory_hit = True
                 if session_name_directory_hit:
+                    session_name = session_name.replace("\\", "\\\\")
                     session_match = re.match(r'^{}(.*)'.format(session_name), line)
                     if session_match:
                         session_string = line
