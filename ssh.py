@@ -4,7 +4,7 @@ import os
 
 
 def open_interactive_ssh(host, user, key_path=None, password=None, options={"StrictHostKeyChecking": "no", "UserKnownHostsFile": "/dev/null"}, control_path_dir="~/.ssh", port=22):
-    ssh_command = ["ssh", f"{user}@{host}"]
+    ssh_command = ["ssh", "-p", port, f"{user}@{host}"]
 
     # Specify the private key file if provided
     if key_path:
