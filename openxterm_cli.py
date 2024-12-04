@@ -208,26 +208,26 @@ def list_objects(mxtsessions_file_path, object_name):
         imported_mxtsession_path = imported_mxtsessions_dict[session_stack_name]
         with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
             content = file.readlines()
-            directory_before = None
+            directory_before = ""
+            print(f"[{session_stack_name}]")
+            directory_match_hit = False
             for line in content:
-                directory_match_hit = False
                 directory_match = re.match(r'^SubRep=(.*)', line)
                 directory_name_match = re.match(r'^SubRep={}(.*)'.format(session_name_directory.replace("\\", "\\\\")), line)
-                if directory_name_match:
+                if directory_match and not directory_name_match:
+                    directory_match_hit = False
+                elif directory_name_match:
                     directory_match_hit = True
                     blank_string = ""
-                    directory = directory_match.group(1)
+                    directory = f"{session_name_directory}{directory_name_match.group(1)}"
                     directory = directory.strip().split('\\')
                     for i in directory:
                         blank_string += "  "
-                    if directory[0] == "":
-                        print(f"[{imported_mxtsession_name}]")
-                    elif not directory[-1] in directory_before:
+
+                    if not directory[-1] in directory_before:
                         print(f"{blank_string}[{directory[-1]}]")
                     directory_before = directory[:-1]
-                elif directory_match and directory_name_match:
-                    break
-                elif ('=#' in line or '= #' in line) and directory_name_match:
+                elif ('=#' in line or '= #') and directory_match_hit:
                     line_psv = line.strip().split('%')
                     session_name = line_psv[0].strip().split('=')[0]
                     print(f"{blank_string}  - {session_name}")
