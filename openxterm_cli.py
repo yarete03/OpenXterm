@@ -144,7 +144,7 @@ def connect_to_object(mxtsessions_file_path, session_name):
                 session_name_directory_hit = True
             if session_name_directory_hit:
                 session_name = session_name.replace("\\", "\\\\")
-                session_match = re.match(r'^{}(.*)'.format(session_name), line)
+                session_match = re.match(r'^{}=#(.*)'.format(session_name), line)
                 if session_match:
                     session_string = line
                     session_string_hit = True
@@ -173,8 +173,64 @@ def connect_to_object(mxtsessions_file_path, session_name):
         print("[!] Error: The session you tried to connect to was not found")
         exit(1)
 
+
 def list_objects(mxtsessions_file_path, object_name):
-    pass
+    imported_mxtsessions_dict = imported_mxtsessions_reader(mxtsessions_file_path)
+    if object_name is None:
+        for imported_mxtsession_name, imported_mxtsession_path in imported_mxtsessions_dict.items():
+            with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
+                content = file.readlines()
+                directory_before = None
+                for line in content:
+                    directory_match = re.match(r'^SubRep=(.*)', line)
+                    if not directory_match:    
+                        if '=#' in line or '= #' in line:
+                            line_psv = line.strip().split('%')
+                            session_name = line_psv[0].strip().split('=')[0]
+                            print(f"{blank_string}  - {session_name}")
+                    else:
+                        blank_string = ""
+                        directory = directory_match.group(1)
+                        directory = directory.strip().split('\\')
+                        for i in directory:
+                            blank_string += "  "
+                        if directory[0] == "":
+                            print(f"[{imported_mxtsession_name}]")
+                        elif not directory[-1] in directory_before:
+                            print(f"{blank_string}[{directory[-1]}]")
+                        directory_before = directory[:-1]
+    else:
+        session_name_directory = "\\".join(object_name.split('/')[2:-1])
+        session_array = object_name.split('/')
+        session_stack_name = session_array[1]
+        session_directory_name = session_array[1:]
+        imported_mxtsessions_dict = imported_mxtsessions_reader(mxtsessions_file_path)
+        imported_mxtsession_path = imported_mxtsessions_dict[session_stack_name]
+        with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
+            content = file.readlines()
+            directory_before = None
+            for line in content:
+                directory_match_hit = False
+                directory_match = re.match(r'^SubRep=(.*)', line)
+                directory_name_match = re.match(r'^SubRep={}(.*)'.format(session_name_directory.replace("\\", "\\\\")), line)
+                if directory_name_match:
+                    directory_match_hit = True
+                    blank_string = ""
+                    directory = directory_match.group(1)
+                    directory = directory.strip().split('\\')
+                    for i in directory:
+                        blank_string += "  "
+                    if directory[0] == "":
+                        print(f"[{imported_mxtsession_name}]")
+                    elif not directory[-1] in directory_before:
+                        print(f"{blank_string}[{directory[-1]}]")
+                    directory_before = directory[:-1]
+                elif directory_match and directory_name_match:
+                    break
+                elif ('=#' in line or '= #' in line) and directory_name_match:
+                    line_psv = line.strip().split('%')
+                    session_name = line_psv[0].strip().split('=')[0]
+                    print(f"{blank_string}  - {session_name}")
 
 
 def main():
