@@ -227,7 +227,7 @@ def list_objects(mxtsessions_file_path, object_name):
                     if not directory[-1] in directory_before:
                         print(f"{blank_string}[{directory[-1]}]")
                     directory_before = directory[:-1]
-                elif ('=#' in line or '= #') and directory_match_hit:
+                elif ('=#' in line or '= #' in line) and directory_match_hit:
                     line_psv = line.strip().split('%')
                     session_name = line_psv[0].strip().split('=')[0]
                     print(f"{blank_string}  - {session_name}")
