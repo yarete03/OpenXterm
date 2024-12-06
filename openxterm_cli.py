@@ -5,14 +5,16 @@ from ssh import open_interactive_ssh
 from pathlib import Path
 import getpass
 
-
 # Path to store imported sessions
 home_directory = Path.home()
 mxtsessions_directory_path = Path(home_directory / ".mxtsessions")
 mxtsessions_file_path = mxtsessions_directory_path / "imported_mxtsessions"
+args = None
 
 
 def args_parser():
+    global args
+
     # ArgParse
     parser = argparse.ArgumentParser(description="Perform actions on objects")
 
@@ -46,19 +48,18 @@ def args_parser():
 
     # Subparser for the 'connect' action
     connect_parser = subparsers.add_parser('connect', help='Connect to an object')
-    connect_parser.add_argument('object_name', 
-                               help='Name of the session to establish connection')
+    connect_parser.add_argument('object_name',
+                                help='Name of the session to establish connection')
 
     # Subparser for the 'connect' action
     list_parser = subparsers.add_parser('list', help='List sessions | directories')
-    list_parser.add_argument('object_name', 
-                               help='Name of the directory to list',
-                               nargs='?',
-                               default=None)
+    list_parser.add_argument('object_name',
+                             help='Name of the directory to list',
+                             nargs='?',
+                             default=None)
 
     # Parse arguments
     args = parser.parse_args()
-    return args
 
 
 def ensure_mxtsessions_path():
@@ -76,11 +77,14 @@ def import_object(mxtsessions_file_path, object_type, object_path, object_name):
                 if not f'{object_path}' in content:
                     file.write(f'{object_path}\\{object_name}\n')
                 else:
-                    print(f"[!] Error: Since there is already a session_stack aiming to \"{object_path}\", it won't be imported a new one. ")
+                    print(f"[!] Error: Since there is already a session_stack aiming to "
+                          f"\"{object_path}\", it won't be imported a new one. ")
                     exit(1)
             else:
-                print(f"[!] Error: Since there is already a session_stack called \"{object_name}\", it won't be imported a new one. ")
+                print(f"[!] Error: Since there is already a session_stack called "
+                      f"\"{object_name}\", it won't be imported a new one. ")
                 exit(1)
+
 
 def delete_object(mxtsessions_file_path, object_type, object_name):
     if object_type == "session_stack":
@@ -90,15 +94,16 @@ def delete_object(mxtsessions_file_path, object_type, object_name):
         with open(mxtsessions_file_path, 'w') as file:
             file.writelines(filtered_content)
 
+
 def imported_mxtsessions_reader(mxtsessions_file_path):
     imported_mxtsessions_dict = {}
-    line_existance = False
+    line_existence = False
     with open(mxtsessions_file_path, 'r') as file:
         for line in file:
             line_splitted = line.strip().split('\\')
             imported_mxtsessions_dict[line_splitted[1]] = line_splitted[0]
-            line_existance = True
-    if not line_existance:
+            line_existence = True
+    if not line_existence:
         print("[!] Error: There is no session_stack yet. Please import one before retrying this action")
         exit(1)
     else:
@@ -106,7 +111,7 @@ def imported_mxtsessions_reader(mxtsessions_file_path):
 
 
 def search_objects(mxtsessions_file_path, object_type, object_name):
-    imported_mxtsessions_dict= imported_mxtsessions_reader(mxtsessions_file_path)
+    imported_mxtsessions_dict = imported_mxtsessions_reader(mxtsessions_file_path)
     for imported_mxtsession_name, imported_mxtsession_path in imported_mxtsessions_dict.items():
         with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
             content = file.readlines()
@@ -138,8 +143,8 @@ def connect_to_object(mxtsessions_file_path, session_name):
     session_name_directory_hit = False
     session_string_hit = False
     with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
-         content = file.readlines()
-         for line in content:
+        content = file.readlines()
+        for line in content:
             if session_name_directory in line:
                 session_name_directory_hit = True
             if session_name_directory_hit:
@@ -151,7 +156,8 @@ def connect_to_object(mxtsessions_file_path, session_name):
 
     if session_string_hit:
         session_array = session_string.strip().split('%')
-        session_protocol = ("ssh" if '#109#0' in session_array[0].strip().split('=')[1] else ('rdp' if '#91#4' in session_array[0].strip().split('=')[1] else None))
+        session_protocol = ("ssh" if '#109#0' in session_array[0].strip().split('=')[1]
+                            else ('rdp' if '#91#4' in session_array[0].strip().split('=')[1] else None))
         session_host = session_array[1]
         session_port = session_array[2]
         session_user = session_array[3]
@@ -203,7 +209,6 @@ def list_objects(mxtsessions_file_path, object_name):
         session_name_directory = "\\".join(object_name.split('/')[2:-1])
         session_array = object_name.split('/')
         session_stack_name = session_array[1]
-        session_directory_name = session_array[1:]
         imported_mxtsessions_dict = imported_mxtsessions_reader(mxtsessions_file_path)
         imported_mxtsession_path = imported_mxtsessions_dict[session_stack_name]
         with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
@@ -213,7 +218,9 @@ def list_objects(mxtsessions_file_path, object_name):
             directory_match_hit = False
             for line in content:
                 directory_match = re.match(r'^SubRep=(.*)', line)
-                directory_name_match = re.match(r'^SubRep={}(.*)'.format(session_name_directory.replace("\\", "\\\\")), line)
+                session_name_directory = session_name_directory.replace('\\', "\\\\")
+                directory_name_match_string = f'^SubRep={session_name_directory}(.*)'
+                directory_name_match = re.match(r'{}'.format(directory_name_match_string), line)
                 if directory_match and not directory_name_match:
                     directory_match_hit = False
                 elif directory_name_match:
@@ -221,7 +228,7 @@ def list_objects(mxtsessions_file_path, object_name):
                     blank_string = ""
                     directory = f"{session_name_directory}{directory_name_match.group(1)}"
                     directory = directory.strip().split('\\')
-                    for i in directory:
+                    for _ in directory:
                         blank_string += "  "
 
                     if not directory[-1] in directory_before:
@@ -235,7 +242,7 @@ def list_objects(mxtsessions_file_path, object_name):
 
 def main():
     global args 
-    args = args_parser()
+    args_parser()
     ensure_mxtsessions_path()
     if args.action == 'import':
         import_object(mxtsessions_file_path, args.object_type, args.object_path, args.object_name)
