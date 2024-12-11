@@ -143,13 +143,19 @@ def connect_to_object(mxtsessions_file_path, session_name):
     session_name_directory_hit = False
     session_string_hit = False
     with open(imported_mxtsession_path, 'r', encoding='ISO-8859-1') as file:
+<<<<<<< HEAD
         content = file.readlines()
         for line in content:
+=======
+         content = file.readlines()
+         session_name = session_name.replace("\\", "\\\\")
+         for line in content:
+>>>>>>> d7cfcbd (Updating regex for finding session strings)
             if session_name_directory in line:
                 session_name_directory_hit = True
             if session_name_directory_hit:
-                session_name = session_name.replace("\\", "\\\\")
-                session_match = re.match(r'^{}=#(.*)'.format(session_name), line)
+                session_match_string = f"^{session_name}(.*)=(.*)#(.*)"
+                session_match = re.match(r"{}".format(session_match_string), line)
                 if session_match:
                     session_string = line
                     session_string_hit = True
