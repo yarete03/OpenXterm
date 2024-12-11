@@ -9,12 +9,9 @@ import getpass
 home_directory = Path.home()
 mxtsessions_directory_path = Path(home_directory / ".mxtsessions")
 mxtsessions_file_path = mxtsessions_directory_path / "imported_mxtsessions"
-args = None
 
 
 def args_parser():
-    global args
-
     # ArgParse
     parser = argparse.ArgumentParser(description="Perform actions on objects")
 
@@ -60,6 +57,8 @@ def args_parser():
 
     # Parse arguments
     args = parser.parse_args()
+
+    return args
 
 
 def ensure_mxtsessions_path():
@@ -242,8 +241,7 @@ def list_objects(mxtsessions_file_path, object_name):
 
 
 def main():
-    global args 
-    args_parser()
+    args = args_parser()
     ensure_mxtsessions_path()
     if args.action == 'import':
         import_object(mxtsessions_file_path, args.object_type, args.object_path, args.object_name)
