@@ -147,7 +147,9 @@ def search_objects(mxtsessions_file_path, object_type, object_name):
                         session_name_protocol = line_psv[0].strip().split('=')
                         session_name = session_name_protocol[0]
                         session_protocol = session_name_protocol[1]
-                        print(f'/{imported_mxtsession_name}/{directory}/{session_name}')
+                        session_protocol_str = ("[+] SSH" if '#109#0' == session_protocol
+                            else ('[+] RDP' if '#91#4' == session_protocol else '[!] Not Known'))
+                        print(f'/{imported_mxtsession_name}/{directory}/{session_name}  {session_protocol_str}')
             else:
                 directory = directory_match.group(1)
                 directory = directory.replace('\\','/')
@@ -219,7 +221,9 @@ def list_objects(mxtsessions_file_path, object_name):
                     if '=#' in line or '= #' in line:
                         line_psv = line.strip().split('%')
                         session_name = line_psv[0].strip().split('=')[0]
-                        print(f"{blank_string}  - {session_name}")
+                        session_protocol = ("[+] SSH" if '#109#0' in line_psv[0].strip().split('=')[1]
+                                            else ('[+] RDP' if '#91#4' in line_psv[0].strip().split('=')[1] else '[!] Not Known'))
+                        print(f"{blank_string}  - {session_name}  {session_protocol}")
                 else:
                     blank_string = ""
                     directory = directory_match.group(1)
